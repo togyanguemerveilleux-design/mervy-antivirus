@@ -1,0 +1,169 @@
+
+import os
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.popup import Popup
+from kivy.core.window import Window
+
+Window.clearcolor = (0.025, 0.045, 0.09, 1)
+
+SIGNATURES = [
+    "SUSPICIOUS_TEST",
+    "DANGER_TEST",
+    "MALWARE_SIMULATION",
+    "VIRUS_DEMO"
+]
+
+class MervyAntivirus(App):
+
+    def build(self):
+        self.fichier = None
+
+        page = BoxLayout(
+            orientation="vertical",
+            padding=18,
+            spacing=15
+        )
+
+        titre = Label(
+            text="[b]🛡 MERVY ANTIVIRUS[/b]",
+            markup=True,
+            font_size=27,
+            color=(0.2, 0.8, 1, 1),
+            size_hint_y=0.16
+        )
+
+        sous_titre = Label(
+            text="Votre sécurité numérique",
+            font_size=17,
+            size_hint_y=0.10
+        )
+
+        self.resultat = Label(
+            text="Choisissez un fichier à analyser",
+            font_size=17
+        )
+
+        choisir = Button(
+            text="CHOISIR UN FICHIER",
+            font_size=19,
+            background_normal="",
+            background_color=(0.04, 0.25, 0.55, 1),
+            size_hint_y=0.18
+        )
+        choisir.bind(on_press=self.ouvrir_fichiers)
+
+        analyser = Button(
+            text="ANALYSER LE FICHIER",
+            font_size=21,
+            background_normal="",
+            background_color=(0, 0.65, 0.25, 1),
+            size_hint_y=0.18
+        )
+        analyser.bind(on_press=self.analyser)
+
+        menu = GridLayout(
+            cols=2,
+            spacing=8,
+            size_hint_y=0.20
+        )
+
+        for nom in ["PROTECTION", "FICHIERS",
+                    "RAPPORT", "À PROPOS"]:
+            b = Button(text=nom, font_size=14)
+            menu.add_widget(b)
+
+        page.add_widget(titre)
+        page.add_widget(sous_titre)
+        page.add_widget(choisir)
+        page.add_widget(analyser)
+        page.add_widget(self.resultat)
+        page.add_widget(menu)
+
+        return page
+
+    def ouvrir_fichiers(self, instance):
+        contenu = BoxLayout(
+            orientation="vertical",
+            spacing=8,
+            padding=8
+        )
+
+        explorateur = FileChooserListView(
+            path="/storage/emulated/0/",
+            filters=["*.txt"]
+        )
+
+        contenu.add_widget(explorateur)
+
+        boutons = BoxLayout(
+            size_hint_y=0.15,
+            spacing=8
+        )
+
+        valider = Button(text="SÉLECTIONNER")
+        annuler = Button(text="ANNULER")
+
+        boutons.add_widget(valider)
+        boutons.add_widget(annuler)
+        contenu.add_widget(boutons)
+
+        fenetre = Popup(
+            title="Choisir un fichier texte",
+            content=contenu,
+            size_hint=(0.95, 0.9)
+        )
+
+        def selectionner(instance):
+            if explorateur.selection:
+                self.fichier = explorateur.selection[0]
+                self.resultat.text = (
+                    "Fichier choisi :\n" +
+                    os.path.basename(self.fichier)
+                )
+                fenetre.dismiss()
+            else:
+                self.resultat.text = "Sélectionnez un fichier."
+
+        valider.bind(on_press=selectionner)
+        annuler.bind(on_press=fenetre.dismiss)
+
+        fenetre.open()
+
+    def analyser(self, instance):
+        if not self.fichier:
+            self.resultat.text = "Choisissez d'abord un fichier."
+            return
+
+        try:
+            with open(self.fichier, "r", encoding="utf-8") as f:
+                contenu = f.read()
+
+            trouve = next(
+                (s for s in SIGNATURES if s in contenu),
+                None
+            )
+
+            if trouve:
+                self.resultat.text = (
+                    "[b]MARQUEUR DE TEST TROUVÉ[/b]\n"
+                    + trouve
+                )
+            else:
+                self.resultat.text = (
+                    "[b]AUCUN MARQUEUR DE TEST[/b]\n"
+                    "Fichier lisible."
+                )
+
+            self.resultat.markup = True
+
+        except (OSError, UnicodeDecodeError):
+            self.resultat.text = (
+                "Impossible de lire ce fichier texte."
+            )
+
+MervyAntivirus().run()
