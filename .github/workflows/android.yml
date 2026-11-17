@@ -1,3 +1,4 @@
+
 name: Build Mervy Antivirus APK
 
 on:
@@ -5,16 +6,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Recuperer le projet
         uses: actions/checkout@v4
-
-      - name: Installer Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       - name: Installer les dependances
         run: |
@@ -24,9 +20,10 @@ jobs:
             libncurses5-dev libncursesw5-dev libtinfo6 \
             cmake libffi-dev libssl-dev
 
-      - name: Installer Buildozer
+      - name: Installer Python et Buildozer
         run: |
-          pip install --user buildozer cython==0.29.36
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user buildozer cython==0.29.36
 
       - name: Compiler APK
         run: |
@@ -38,3 +35,5 @@ jobs:
         with:
           name: MERVY-ANTIVIRUS-APK
           path: bin/*.apk
+          if-no-files-found: error
+
