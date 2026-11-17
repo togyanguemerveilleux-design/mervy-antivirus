@@ -36,4 +36,3 @@ jobs:
           name: MERVY-ANTIVIRUS-APK
           path: bin/*.apk
           if-no-files-found: error
-
